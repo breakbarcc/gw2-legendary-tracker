@@ -13,6 +13,10 @@ export interface TransferEntry {
   recIcon: string | undefined;
   availableOptions: TransferOption[];
   selectedId: number;
+  /** True if a weapon of this type is already present in Glint's Prophecy. */
+  alreadyInRoadmap: boolean;
+  /** Whether this entry is included in the transfer. Defaults to false when alreadyInRoadmap. */
+  enabled: boolean;
 }
 
 export type ImportMode = 'append' | 'overwrite';

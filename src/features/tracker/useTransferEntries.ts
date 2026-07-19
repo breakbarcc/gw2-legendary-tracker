@@ -10,7 +10,7 @@ import { sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable';
 import type { LegendaryWeaponRecommendation } from '@/types/gw2-api';
 import { useAllLegendaryItems } from '@/features/prophecy/useAllLegendaryItems';
 import { storage } from '@/services/storage';
-import { buildEntries } from './transferUtils';
+import { buildEntries, getRoadmapWeaponTypes } from './transferUtils';
 import type { TransferEntry, ImportMode } from './transferTypes';
 
 interface UseTransferEntriesResult {
@@ -23,6 +23,7 @@ interface UseTransferEntriesResult {
   handleDragEnd: (event: DragEndEvent) => void;
   deleteEntry: (id: string) => void;
   setSelected: (id: string, itemId: number) => void;
+  toggleEnabled: (id: string) => void;
   handleTransfer: () => void;
 }
 
@@ -31,10 +32,13 @@ export function useTransferEntries(
   recommendations: LegendaryWeaponRecommendation[],
   onTransferred: () => void,
 ): UseTransferEntriesResult {
-  const { items: allItems, isLoading } = useAllLegendaryItems(apiKey);
+  const { items: allItems, itemsById, isLoading } = useAllLegendaryItems(apiKey);
 
   const [entries, setEntries] = useState<TransferEntry[]>([]);
   const [importMode, setImportMode] = useState<ImportMode>('append');
+
+  // Snapshot the roadmap once — it must not change while the modal is open.
+  const existingSteps = useMemo(() => storage.getRoadmap(), []);
 
   // Guard: initialise entries exactly once after items have loaded.
   // allItems gets a NEW array reference on every render (inline .map() in the
@@ -43,13 +47,14 @@ export function useTransferEntries(
   useEffect(() => {
     if (!isLoading && allItems.length > 0 && !initialized.current) {
       initialized.current = true;
-      setEntries(buildEntries(recommendations, allItems));
+      const roadmapWeaponTypes = getRoadmapWeaponTypes(existingSteps, itemsById);
+      setEntries(buildEntries(recommendations, allItems, roadmapWeaponTypes));
     }
-  }, [isLoading, allItems, recommendations]);
+  }, [isLoading, allItems, itemsById, recommendations, existingSteps]);
 
   const existingPlannedCount = useMemo(
-    () => storage.getRoadmap().filter((s) => s.item !== null && !s.done).length,
-    [],
+    () => existingSteps.filter((s) => s.item !== null && !s.done).length,
+    [existingSteps],
   );
 
   // Pointer: distance constraint ensures a real drag gesture (≥8 px) is
@@ -77,8 +82,12 @@ export function useTransferEntries(
     setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, selectedId: itemId } : e)));
   }
 
+  function toggleEnabled(id: string) {
+    setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, enabled: !e.enabled } : e)));
+  }
+
   function handleTransfer() {
-    const toAdd = entries.filter((e) => e.selectedId);
+    const toAdd = entries.filter((e) => e.enabled && e.selectedId);
     if (toAdd.length === 0) return;
     const existing = storage.getRoadmap();
     const base = importMode === 'overwrite' ? existing.filter((s) => s.done) : existing;
@@ -109,6 +118,7 @@ export function useTransferEntries(
     handleDragEnd,
     deleteEntry,
     setSelected,
+    toggleEnabled,
     handleTransfer,
   };
 }

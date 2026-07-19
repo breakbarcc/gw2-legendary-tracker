@@ -25,6 +25,7 @@ export function TransferToProphecyModal({
     handleDragEnd,
     deleteEntry,
     setSelected,
+    toggleEnabled,
     handleTransfer,
   } = useTransferEntries(apiKey, recommendations, onTransferred);
 
@@ -37,7 +38,7 @@ export function TransferToProphecyModal({
     };
   }, []);
 
-  const transferCount = entries.length;
+  const transferCount = entries.filter((e) => e.enabled).length;
   const canTransfer = transferCount > 0;
 
   return (
@@ -85,6 +86,7 @@ export function TransferToProphecyModal({
             onDragEnd={handleDragEnd}
             onDelete={deleteEntry}
             onSelect={setSelected}
+            onToggleEnabled={toggleEnabled}
             t={t}
           />
         </div>

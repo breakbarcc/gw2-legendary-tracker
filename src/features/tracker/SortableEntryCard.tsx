@@ -10,6 +10,7 @@ interface SortableEntryCardProps {
   index: number;
   onDelete: () => void;
   onSelect: (itemId: number) => void;
+  onToggleEnabled: () => void;
   t: (key: string, opts?: Record<string, unknown>) => string;
 }
 
@@ -18,11 +19,13 @@ export function SortableEntryCard({
   index,
   onDelete,
   onSelect,
+  onToggleEnabled,
   t,
 }: Readonly<SortableEntryCardProps>) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: entry.id,
   });
+  const isSkipped = entry.alreadyInRoadmap && !entry.enabled;
 
   return (
     <div
@@ -30,14 +33,20 @@ export function SortableEntryCard({
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.4 : 1,
+        opacity: isDragging ? 0.4 : isSkipped ? 0.4 : 1,
         zIndex: isDragging ? 10 : undefined,
       }}
     >
       <div
         style={{
-          background: isDragging ? 'rgba(147,73,204,0.14)' : 'rgba(20,16,28,0.7)',
-          border: `1px solid ${isDragging ? 'rgba(147,73,204,0.5)' : 'rgba(147,73,204,0.15)'}`,
+          background: isDragging
+            ? 'rgba(147,73,204,0.14)'
+            : isSkipped
+              ? 'rgba(8,6,12,0.6)'
+              : 'rgba(20,16,28,0.7)',
+          border: `1px ${isSkipped ? 'dashed' : 'solid'} ${
+            isDragging ? 'rgba(147,73,204,0.5)' : isSkipped ? 'rgba(255,255,255,0.15)' : 'rgba(147,73,204,0.15)'
+          }`,
           borderRadius: 8,
           padding: '10px 10px 10px 6px',
           display: 'flex',
@@ -45,6 +54,7 @@ export function SortableEntryCard({
           gap: 8,
           transition: 'border-color 0.15s, background 0.15s',
           userSelect: 'none',
+          filter: isSkipped ? 'grayscale(1)' : undefined,
         }}
       >
         {/* Drag handle — only this element activates the drag */}
@@ -152,6 +162,30 @@ export function SortableEntryCard({
               );
             })}
           </div>
+
+          {entry.alreadyInRoadmap && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+              <span style={{ fontSize: 10, color: '#8e8a9a', fontStyle: 'italic' }}>
+                {t('transfer.alreadyInRoadmap')}
+              </span>
+              <button
+                onClick={onToggleEnabled}
+                style={{
+                  padding: '1px 8px',
+                  borderRadius: 4,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  border: `1px solid ${PURPLE}55`,
+                  background: 'transparent',
+                  color: '#a89cc0',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                {entry.enabled ? t('transfer.skipAgain') : t('transfer.includeAnyway')}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Delete */}

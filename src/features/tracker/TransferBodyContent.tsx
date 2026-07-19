@@ -13,6 +13,7 @@ interface TransferBodyContentProps {
   onDragEnd: (event: DragEndEvent) => void;
   onDelete: (id: string) => void;
   onSelect: (id: string, itemId: number) => void;
+  onToggleEnabled: (id: string) => void;
   t: (key: string, opts?: Record<string, unknown>) => string;
 }
 
@@ -23,6 +24,7 @@ export function TransferBodyContent({
   onDragEnd,
   onDelete,
   onSelect,
+  onToggleEnabled,
   t,
 }: Readonly<TransferBodyContentProps>) {
   if (isLoading) {
@@ -77,6 +79,7 @@ export function TransferBodyContent({
                 index={i}
                 onDelete={() => onDelete(entry.id)}
                 onSelect={(itemId) => onSelect(entry.id, itemId)}
+                onToggleEnabled={() => onToggleEnabled(entry.id)}
                 t={t}
               />
             ))}
