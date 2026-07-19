@@ -83,9 +83,18 @@ export function useTransferEntries(
     const existing = storage.getRoadmap();
     const base = importMode === 'overwrite' ? existing.filter((s) => s.done) : existing;
     const maxId = base.length > 0 ? Math.max(...base.map((s) => s.id)) : 0;
+
+    // Fill existing empty slots before appending new steps at the end.
+    const queue = [...toAdd];
+    const filled = base.map((s) =>
+      s.item === null && !s.done && queue.length > 0
+        ? { ...s, item: queue.shift()!.selectedId }
+        : s,
+    );
+
     storage.setRoadmap([
-      ...base,
-      ...toAdd.map((e, i) => ({ id: maxId + i + 1, item: e.selectedId, done: false })),
+      ...filled,
+      ...queue.map((e, i) => ({ id: maxId + i + 1, item: e.selectedId, done: false })),
     ]);
     onTransferred();
   }
