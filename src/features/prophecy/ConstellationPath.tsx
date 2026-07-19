@@ -94,6 +94,8 @@ export function ConstellationPath({
         background: 'rgba(11,8,20,0.6)',
         border: '1px solid rgba(147,73,204,0.2)',
         borderRadius: 14,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
       }}
     >
       {/* Fixed star field */}
