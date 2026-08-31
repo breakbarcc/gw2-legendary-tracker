@@ -24,7 +24,7 @@ type FilterType = 'all' | 'weapons' | 'armor';
 
 export function OverviewPage({ apiKey, onLogout, onNavigate }: OverviewPageProps) {
   const { t } = useTranslation();
-  const [viewMode, setViewMode] = useState<ViewMode>('flat');
+  const [viewMode, setViewMode] = useState<ViewMode>('grouped');
   const [filterType, setFilterType] = useState<FilterType>('all');
   const {
     items: allItems,
