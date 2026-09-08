@@ -98,8 +98,8 @@ export const storage = {
     try {
       const raw = localStorage.getItem(MIN_PLAYTIME_KEY);
       if (!raw) return 0;
-      const n = parseFloat(raw);
-      return isNaN(n) ? 0 : n;
+      const n = Number.parseFloat(raw);
+      return Number.isNaN(n) ? 0 : n;
     } catch {
       return 0;
     }
