@@ -1,14 +1,18 @@
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getGen1WeaponCardMap } from '@/utils/gen1WeaponCards';
-import type { WeaponCardInfo } from '@/utils/gen1WeaponCards';
-import type { WeaponType } from '@/types/gw2-api';
+import { getStarterKitWeaponChoices } from '@/utils/starterKits';
+import type { WeaponChoice } from '@/utils/gen1WeaponCards';
 
-export type { WeaponCardInfo } from '@/utils/gen1WeaponCards';
+export type { WeaponCardInfo, WeaponChoice } from '@/utils/gen1WeaponCards';
 
-export function useGen1WeaponCards(): { weaponCardMap: Map<WeaponType, WeaponCardInfo> } {
+export function useGen1WeaponCards(): {
+  getWeaponChoicesForKit: (kitId: number) => WeaponChoice[];
+} {
   const { i18n } = useTranslation();
   const lang = i18n.language.startsWith('de') ? 'de' : 'en';
-  const weaponCardMap = useMemo(() => getGen1WeaponCardMap(lang), [lang]);
-  return { weaponCardMap };
+  const getWeaponChoicesForKit = useCallback(
+    (kitId: number) => getStarterKitWeaponChoices(kitId, lang),
+    [lang]
+  );
+  return { getWeaponChoicesForKit };
 }

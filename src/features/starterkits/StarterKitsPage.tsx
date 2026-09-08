@@ -9,7 +9,7 @@ import { useGen1WeaponCards } from '@/hooks/useGen1WeaponCards.ts';
 import { useArmoryStatus } from '@/hooks/useArmoryStatus';
 import { storage } from '@/services/storage';
 import { STARTER_KIT_ORDER, STARTER_KIT_WEAPONS, UNIVERSAL_STARTER_KIT_ID } from '@/utils/starterKits';
-import type { WeaponCardInfo } from '@/hooks/useGen1WeaponCards.ts';
+import type { WeaponChoice } from '@/hooks/useGen1WeaponCards.ts';
 import type { WeaponType } from '@/types/gw2-api';
 import type { KitChoices, FilterMode } from './starterKitTypes';
 import { normalizeChoices } from './starterKitUtils';
@@ -26,7 +26,7 @@ interface Props {
 export function StarterKitsPage({ apiKey, onLogout, onNavigate }: Readonly<Props>) {
   const { t } = useTranslation();
   const { ownedCounts, isLoading: isLoadingOwned, error, refetch } = useOwnedStarterKits(apiKey);
-  const { getWeaponCardMapForKit } = useGen1WeaponCards();
+  const { getWeaponChoicesForKit } = useGen1WeaponCards();
   const { unlockedItemIds, partiallyCoveredWeaponTypes, coveredWeaponTypes } = useArmoryStatus(apiKey);
 
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
@@ -35,7 +35,7 @@ export function StarterKitsPage({ apiKey, onLogout, onNavigate }: Readonly<Props
     const raw = storage.getKitChoices();
     const result: KitChoices = {};
     for (const [key, val] of Object.entries(raw)) {
-      result[Number(key)] = val as (WeaponType | null)[];
+      result[Number(key)] = val;
     }
     return result;
   });
@@ -49,16 +49,14 @@ export function StarterKitsPage({ apiKey, onLogout, onNavigate }: Readonly<Props
     });
   };
 
-  const setSlotChoice = (kitId: number, slotIdx: number, weapon: WeaponType | null) => {
+  const setSlotChoice = (kitId: number, slotIdx: number, legendaryId: number | null) => {
     setChoices((prev) => {
       const count = ownedCounts.get(kitId) ?? 0;
       const current = normalizeChoices(prev[kitId], count);
       const updated = [...current];
-      updated[slotIdx] = weapon;
+      updated[slotIdx] = legendaryId;
       const newChoices = { ...prev, [kitId]: updated };
-      const toStore: Record<string, (string | null)[]> = {};
-      for (const [k, v] of Object.entries(newChoices)) toStore[k] = v;
-      storage.setKitChoices(toStore);
+      storage.setKitChoices(newChoices);
       return newChoices;
     });
   };
@@ -225,7 +223,7 @@ export function StarterKitsPage({ apiKey, onLogout, onNavigate }: Readonly<Props
               ownedCounts={ownedCounts}
               expandedKits={expandedKits}
               choices={choices}
-              getWeaponCardMapForKit={getWeaponCardMapForKit}
+              getWeaponChoicesForKit={getWeaponChoicesForKit}
               unlockedItemIds={unlockedItemIds}
               partiallyCoveredWeaponTypes={partiallyCoveredWeaponTypes}
               coveredWeaponTypes={coveredWeaponTypes}
@@ -247,12 +245,12 @@ interface KitListContentProps {
   ownedCounts: Map<number, number>;
   expandedKits: Set<number>;
   choices: KitChoices;
-  getWeaponCardMapForKit: (kitId: number) => Map<WeaponType, WeaponCardInfo>;
+  getWeaponChoicesForKit: (kitId: number) => WeaponChoice[];
   unlockedItemIds: Set<number>;
   partiallyCoveredWeaponTypes: Set<WeaponType>;
   coveredWeaponTypes: Set<WeaponType>;
   onToggle: (kitId: number) => void;
-  onSlotChange: (kitId: number, slotIdx: number, weapon: WeaponType | null) => void;
+  onSlotChange: (kitId: number, slotIdx: number, legendaryId: number | null) => void;
   noOwnedLabel: string;
 }
 
@@ -261,7 +259,7 @@ function KitListContent({
   ownedCounts,
   expandedKits,
   choices,
-  getWeaponCardMapForKit,
+  getWeaponChoicesForKit,
   unlockedItemIds,
   partiallyCoveredWeaponTypes,
   coveredWeaponTypes,
@@ -285,7 +283,7 @@ function KitListContent({
     const isExpanded = expandedKits.has(kitId);
     const kitChoices = normalizeChoices(choices[kitId], count);
     const availableWeapons = STARTER_KIT_WEAPONS[kitId];
-    const weaponCardMap = getWeaponCardMapForKit(kitId);
+    const weaponChoices = getWeaponChoicesForKit(kitId);
     const isLast = idx === displayedKits.length - 1;
 
     return (
@@ -298,7 +296,7 @@ function KitListContent({
           isExpanded={isExpanded}
           kitChoices={kitChoices}
           availableWeapons={availableWeapons}
-          weaponCardMap={weaponCardMap}
+          weaponChoices={weaponChoices}
           unlockedItemIds={unlockedItemIds}
           partiallyCoveredWeaponTypes={partiallyCoveredWeaponTypes}
           coveredWeaponTypes={coveredWeaponTypes}
@@ -324,12 +322,11 @@ function KitListContent({
                   slotIndex={slotIdx + 1}
                   totalSlots={count}
                   choice={choice}
-                  availableWeapons={availableWeapons}
-                  weaponCardMap={weaponCardMap}
+                  weaponChoices={weaponChoices}
                   unlockedItemIds={unlockedItemIds}
                   partiallyCoveredWeaponTypes={partiallyCoveredWeaponTypes}
                   coveredWeaponTypes={coveredWeaponTypes}
-                  onChange={(weapon) => onSlotChange(kitId, slotIdx, weapon)}
+                  onChange={(legendaryId) => onSlotChange(kitId, slotIdx, legendaryId)}
                 />
               ))
             ) : (
@@ -337,8 +334,7 @@ function KitListContent({
                 slotIndex={1}
                 totalSlots={1}
                 choice={null}
-                availableWeapons={availableWeapons}
-                weaponCardMap={weaponCardMap}
+                weaponChoices={weaponChoices}
                 unlockedItemIds={unlockedItemIds}
                 partiallyCoveredWeaponTypes={partiallyCoveredWeaponTypes}
                 coveredWeaponTypes={coveredWeaponTypes}

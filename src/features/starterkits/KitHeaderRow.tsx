@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import type { WeaponCardInfo } from '@/hooks/useGen1WeaponCards.ts';
+import type { WeaponChoice } from '@/hooks/useGen1WeaponCards.ts';
 import type { WeaponType } from '@/types/gw2-api';
 import { CHIP_STYLES, getChipVariant } from './starterKitStyles';
 
@@ -10,9 +10,10 @@ export interface KitHeaderRowProps {
   count: number;
   isOwned: boolean;
   isExpanded: boolean;
-  kitChoices: (WeaponType | null)[];
+  /** The legendary item ID chosen for each slot, or null if unassigned. */
+  kitChoices: (number | null)[];
   availableWeapons: WeaponType[];
-  weaponCardMap: Map<WeaponType, WeaponCardInfo>;
+  weaponChoices: WeaponChoice[];
   unlockedItemIds: Set<number>;
   partiallyCoveredWeaponTypes: Set<WeaponType>;
   coveredWeaponTypes: Set<WeaponType>;
@@ -27,7 +28,7 @@ export function KitHeaderRow({
   isExpanded,
   kitChoices,
   availableWeapons,
-  weaponCardMap,
+  weaponChoices,
   unlockedItemIds,
   partiallyCoveredWeaponTypes,
   coveredWeaponTypes,
@@ -35,8 +36,14 @@ export function KitHeaderRow({
 }: Readonly<KitHeaderRowProps>) {
   const { t } = useTranslation();
 
+  const choiceById = new Map(weaponChoices.map((wc) => [wc.card.id, wc]));
+
   // Set of selected weapon types across all slots (for chip highlighting)
-  const selectedWeapons = new Set(kitChoices.filter((c): c is WeaponType => c !== null));
+  const selectedWeapons = new Set(
+    kitChoices
+      .map((id) => (id !== null ? choiceById.get(id)?.weaponType : undefined))
+      .filter((wt): wt is WeaponType => !!wt)
+  );
 
   return (
     <div
@@ -169,17 +176,18 @@ export function KitHeaderRow({
           }}
         >
           {kitChoices.map((choice, i) => {
-            if (!choice) {
+            const chosen = choice !== null ? choiceById.get(choice) : undefined;
+            if (!chosen) {
               return (
                 <span key={i} style={{ fontSize: 11, color: '#4a4458', whiteSpace: 'nowrap' }}>
                   {t('starterKits.makeSelection')}
                 </span>
               );
             }
-            const cardInfo = weaponCardMap.get(choice);
-            const isItemOwned = cardInfo ? unlockedItemIds.has(cardInfo.id) : false;
-            const isPartiallyCovered = partiallyCoveredWeaponTypes.has(choice);
-            const isTypeCovered = coveredWeaponTypes.has(choice);
+            const { card: cardInfo, weaponType } = chosen;
+            const isItemOwned = unlockedItemIds.has(cardInfo.id);
+            const isPartiallyCovered = partiallyCoveredWeaponTypes.has(weaponType);
+            const isTypeCovered = coveredWeaponTypes.has(weaponType);
             const chipStyle =
               CHIP_STYLES[getChipVariant(isItemOwned, isPartiallyCovered, isTypeCovered)];
             return (
@@ -198,14 +206,12 @@ export function KitHeaderRow({
                   whiteSpace: 'nowrap',
                 }}
               >
-                {cardInfo && (
-                  <img
-                    src={cardInfo.icon}
-                    alt=""
-                    style={{ width: 14, height: 14, borderRadius: 2, objectFit: 'cover' }}
-                  />
-                )}
-                {cardInfo ? cardInfo.name : t(`weapons.${choice}`)}
+                <img
+                  src={cardInfo.icon}
+                  alt=""
+                  style={{ width: 14, height: 14, borderRadius: 2, objectFit: 'cover' }}
+                />
+                {cardInfo.name}
               </span>
             );
           })}

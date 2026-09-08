@@ -1,27 +1,26 @@
 import { useTranslation } from 'react-i18next';
-import type { WeaponCardInfo } from '@/hooks/useGen1WeaponCards.ts';
+import type { WeaponChoice } from '@/hooks/useGen1WeaponCards.ts';
 import type { WeaponType } from '@/types/gw2-api';
 import { WeaponCard } from './WeaponCard';
 
 export interface SlotRowProps {
   slotIndex: number;
   totalSlots: number;
-  choice: WeaponType | null;
-  availableWeapons: WeaponType[];
-  weaponCardMap: Map<WeaponType, WeaponCardInfo>;
+  /** The legendary item ID chosen for this slot, or null if unassigned. */
+  choice: number | null;
+  weaponChoices: WeaponChoice[];
   unlockedItemIds: Set<number>;
   partiallyCoveredWeaponTypes: Set<WeaponType>;
   coveredWeaponTypes: Set<WeaponType>;
   disabled?: boolean;
-  onChange: (weapon: WeaponType | null) => void;
+  onChange: (legendaryId: number | null) => void;
 }
 
 export function SlotRow({
   slotIndex,
   totalSlots,
   choice,
-  availableWeapons,
-  weaponCardMap,
+  weaponChoices,
   unlockedItemIds,
   partiallyCoveredWeaponTypes,
   coveredWeaponTypes,
@@ -63,22 +62,19 @@ export function SlotRow({
           gap: 8,
         }}
       >
-        {availableWeapons.map((wt) => {
-          const info = weaponCardMap.get(wt);
-          return (
-            <WeaponCard
-              key={wt}
-              weaponType={wt}
-              cardInfo={info}
-              isSelected={choice === wt}
-              isItemOwned={info ? unlockedItemIds.has(info.id) : false}
-              isPartiallyCovered={partiallyCoveredWeaponTypes.has(wt)}
-              isTypeCovered={coveredWeaponTypes.has(wt)}
-              disabled={disabled}
-              onSelect={() => onChange(choice === wt ? null : wt)}
-            />
-          );
-        })}
+        {weaponChoices.map(({ weaponType, card }) => (
+          <WeaponCard
+            key={card.id}
+            weaponType={weaponType}
+            cardInfo={card}
+            isSelected={choice === card.id}
+            isItemOwned={unlockedItemIds.has(card.id)}
+            isPartiallyCovered={partiallyCoveredWeaponTypes.has(weaponType)}
+            isTypeCovered={coveredWeaponTypes.has(weaponType)}
+            disabled={disabled}
+            onSelect={() => onChange(choice === card.id ? null : card.id)}
+          />
+        ))}
       </div>
     </div>
   );

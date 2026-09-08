@@ -1,9 +1,7 @@
-import type { WeaponType } from '@/types/gw2-api';
-
 export function normalizeChoices(
-  stored: (WeaponType | null)[] | undefined,
+  stored: (number | null)[] | undefined,
   count: number,
-): (WeaponType | null)[] {
+): (number | null)[] {
   if (count === 0) return [];
   if (!stored || stored.length === 0) return Array(count).fill(null) as null[];
   if (stored.length === count) return stored;

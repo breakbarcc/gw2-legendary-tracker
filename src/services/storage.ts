@@ -55,17 +55,17 @@ export const storage = {
     }
   },
 
-  getKitChoices(): Record<string, (string | null)[]> {
+  getKitChoices(): Record<string, (number | null)[]> {
     try {
       const raw = localStorage.getItem(KIT_CHOICES_KEY);
       if (!raw) return {};
-      return JSON.parse(raw) as Record<string, (string | null)[]>;
+      return JSON.parse(raw) as Record<string, (number | null)[]>;
     } catch {
       return {};
     }
   },
 
-  setKitChoices(choices: Record<string, (string | null)[]>): void {
+  setKitChoices(choices: Record<string, (number | null)[]>): void {
     try {
       localStorage.setItem(KIT_CHOICES_KEY, JSON.stringify(choices));
     } catch {

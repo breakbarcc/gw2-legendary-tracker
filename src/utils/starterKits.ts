@@ -1,9 +1,14 @@
-import type {WeaponType} from '@/types/gw2-api';
+import type { WeaponType } from '@/types/gw2-api';
+import { GEN1_LEGENDARIES, getGen1Legendary, getWeaponCardList } from './gen1WeaponCards';
+import type { WeaponChoice } from './gen1WeaponCards';
 
 /**
- * Maps each Legendary Weapon Starter Kit/Key "set" to the weapon types it can unlock.
- * Each kit/key lets the player choose ONE of the listed weapons, so all listed
- * weapon types count as "craftable via this kit".
+ * Maps each Legendary Weapon Starter Kit/Key "set" to the gen1 legendaries it lets you
+ * craft (by their real item ID — see gen1WeaponCards.ts for the canonical registry).
+ * Each kit/key lets the player choose ONE of the four, so all of them count as
+ * "craftable via this kit". This is the single source of truth for a kit's contents;
+ * the weapon types it unlocks (STARTER_KIT_WEAPONS) are derived from it below, so a
+ * set can never disagree with the legendary registry about which weapon type an item is.
  *
  * Sets 1-5 originally shipped as "Legendary Weapon Starter Kit" items (now discontinued).
  * Starting with Set 6, Anet switched to "Legendary Weapon Starter Key" items sold via the
@@ -13,26 +18,37 @@ import type {WeaponType} from '@/types/gw2-api';
  * rotations) back to that canonical ID, so the UI shows one row per set regardless of
  * whether the account holds the Kit or any Key variant of it.
  */
-export const STARTER_KIT_WEAPONS: Record<number, WeaponType[]> = {
-  96054: ['Scepter', 'Staff', 'Sword', 'Pistol'], // Set 1
-  101123: ['Sword', 'Pistol', 'Mace', 'Rifle'], // Set 2
-  101623: ['Mace', 'Rifle', 'ShortBow', 'Axe'], // Set 3
-  101938: ['ShortBow', 'Axe', 'Hammer', 'Dagger'], // Set 4
-  102946: ['Hammer', 'Dagger', 'Speargun', 'Greatsword'], // Set 5
-  103839: ['Speargun', 'Greatsword', 'Warhorn', 'LongBow'], // Set 6
-  104004: ['Harpoon', 'Focus', 'LongBow', 'Warhorn'], // Set 7
-  103827: ['Harpoon', 'Focus', 'Greatsword', 'Torch'], // Set 8
-  103821: ['Trident', 'Shield', 'Greatsword', 'Torch'], // Set 9
-  103847: ['Trident', 'Shield', 'Scepter', 'Staff'], // Set 10
-  105331: [
-    'Axe', 'Dagger', 'Mace', 'Pistol', 'Scepter', 'Sword', 'Focus', 'Shield', 'Torch',
-    'Warhorn', 'Greatsword', 'Hammer', 'LongBow', 'Rifle', 'ShortBow', 'Staff', 'Harpoon',
-    'Speargun', 'Trident',
-  ], // Universal — lets you pick any gen-1 legendary weapon; discontinued, was Fractal Incursion-only
+export const STARTER_KIT_LEGENDARIES: Record<number, number[]> = {
+  96054: [30695, 30698, 30699, 30693], // Set 1: Meteorlogicus, The Bifrost, Bolt, Quip
+  101123: [30699, 30693, 30692, 30694], // Set 2: Bolt, Quip, The Moot, The Predator
+  101623: [30692, 30694, 30686, 30684], // Set 3: The Moot, The Predator, The Dreamer, Frostfang
+  101938: [30686, 30684, 30690, 30687], // Set 4: The Dreamer, Frostfang, The Juggernaut, Incinerator
+  102946: [30690, 30687, 30691, 30704], // Set 5: The Juggernaut, Incinerator, Kamohoali'i Kotaki, Twilight
+  103839: [30691, 30704, 30702, 30685], // Set 6: Kamohoali'i Kotaki, Twilight, Howler, Kudzu
+  104004: [30702, 30685, 30697, 30688], // Set 7: Howler, Kudzu, Frenzy, The Minstrel
+  103827: [30697, 30688, 30700, 30703], // Set 8: Frenzy, The Minstrel, Rodgort, Sunrise
+  103821: [30700, 30703, 30701, 30696], // Set 9: Rodgort, Sunrise, Kraitkin, The Flameseeker Prophecies
+  103847: [30701, 30696, 30695, 30698], // Set 10: Kraitkin, The Flameseeker Prophecies, Meteorlogicus, The Bifrost
+  // Universal — lets you pick any gen1 legendary weapon; discontinued, was Fractal
+  // Incursion-only. Includes every legendary, so both Greatswords (Twilight and Sunrise)
+  // are listed individually.
+  105331: GEN1_LEGENDARIES.map((l) => l.id),
 };
 
 /** Item ID of the discontinued "Legendary Weapon Starter Key—Universal" kit. */
 export const UNIVERSAL_STARTER_KIT_ID = 105331;
+
+/**
+ * Weapon types unlocked by each kit/key, derived from STARTER_KIT_LEGENDARIES and
+ * deduplicated — a type is either craftable via a kit or it isn't, regardless of how
+ * many of its legendaries (e.g. Greatsword: Twilight and Sunrise) the kit contains.
+ */
+export const STARTER_KIT_WEAPONS: Record<number, WeaponType[]> = Object.fromEntries(
+  Object.entries(STARTER_KIT_LEGENDARIES).map(([kitId, legendaryIds]) => {
+    const types = legendaryIds.map((id) => getGen1Legendary(id)?.weaponType).filter((wt): wt is WeaponType => !!wt);
+    return [Number(kitId), Array.from(new Set(types))];
+  })
+);
 
 /**
  * Other item IDs that grant the exact same weapon choice as one of the canonical
@@ -78,4 +94,13 @@ export function buildStarterKitMap(ownedKitIds: number[]): Map<WeaponType, numbe
     }
   }
   return result;
+}
+
+/**
+ * Builds the full list of selectable legendaries for a kit's slot picker — every
+ * legendary the kit contains gets its own entry, so a weapon type with more than one
+ * legendary (e.g. the Universal kit's Twilight and Sunrise) lists both individually.
+ */
+export function getStarterKitWeaponChoices(kitId: number, lang: string): WeaponChoice[] {
+  return getWeaponCardList(STARTER_KIT_LEGENDARIES[kitId] ?? [], lang);
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GENERATION_ORDER, type LegendaryGeneration } from '@/utils/legendaryGenerations';
 import { storage } from '@/services/storage';
+import { getGen1Legendary } from '@/utils/gen1WeaponCards';
 import type { LegendaryPickerItem } from './useAllLegendaryItems';
 import { GENERATION_TO_TAB } from './useAllLegendaryItems';
 import { OTHER_TAB, PICKER_TABS, PURPLE, TAB_GENERATIONS } from './prophecyTypes';
@@ -69,8 +70,10 @@ export function ProphecyPicker({
     const choices = storage.getKitChoices();
     const result = new Set<string>();
     for (const slots of Object.values(choices)) {
-      for (const wt of slots) {
-        if (wt !== null) result.add(wt);
+      for (const legendaryId of slots) {
+        if (legendaryId === null) continue;
+        const weaponType = getGen1Legendary(legendaryId)?.weaponType;
+        if (weaponType) result.add(weaponType);
       }
     }
     return result;
