@@ -6,6 +6,7 @@ import { CHIP_STYLES, getChipVariant } from './starterKitStyles';
 
 export interface KitHeaderRowProps {
   setNum: number;
+  isUniversal?: boolean;
   count: number;
   isOwned: boolean;
   isExpanded: boolean;
@@ -20,6 +21,7 @@ export interface KitHeaderRowProps {
 
 export function KitHeaderRow({
   setNum,
+  isUniversal = false,
   count,
   isOwned,
   isExpanded,
@@ -97,7 +99,7 @@ export function KitHeaderRow({
           minWidth: 160,
         }}
       >
-        {t('starterKits.kitName', { num: setNum })}
+        {isUniversal ? t('starterKits.kitNameUniversal') : t('starterKits.kitName', { num: setNum })}
       </span>
 
       {count > 1 && (

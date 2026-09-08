@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getApiClient } from '@/services/apiClient';
-import { STARTER_KIT_IDS } from '@/utils/starterKits';
+import { resolveStarterKitId, STARTER_KIT_IDS } from '@/utils/starterKits';
 
 export function useOwnedStarterKits(apiKey: string) {
   const bankQuery = useQuery({
@@ -22,7 +22,8 @@ export function useOwnedStarterKits(apiKey: string) {
     if (bankQuery.data) {
       for (const slot of bankQuery.data) {
         if (slot && STARTER_KIT_IDS.has(slot.id)) {
-          counts.set(slot.id, (counts.get(slot.id) ?? 0) + 1);
+          const id = resolveStarterKitId(slot.id);
+          counts.set(id, (counts.get(id) ?? 0) + 1);
         }
       }
     }
@@ -34,7 +35,8 @@ export function useOwnedStarterKits(apiKey: string) {
           if (!bag) continue;
           for (const item of bag.inventory) {
             if (item && STARTER_KIT_IDS.has(item.id)) {
-              counts.set(item.id, (counts.get(item.id) ?? 0) + 1);
+              const id = resolveStarterKitId(item.id);
+              counts.set(id, (counts.get(id) ?? 0) + 1);
             }
           }
         }

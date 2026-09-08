@@ -137,6 +137,7 @@ export default {
     filterOwned: 'Im Besitz ({{count}})',
     autoSaved: 'Auswahl automatisch gespeichert',
     kitName: 'Starterkit · Set {{num}}',
+    kitNameUniversal: 'Starterkit · Universal',
     slotLabel: 'SLOT {{index}} / {{total}}',
     notAssigned: 'Noch nicht zugewiesen',
     choose: 'Wählen',

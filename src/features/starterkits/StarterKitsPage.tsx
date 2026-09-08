@@ -8,7 +8,7 @@ import { useOwnedStarterKits } from '@/hooks/useOwnedStarterKits';
 import { useGen1WeaponCards } from '@/hooks/useGen1WeaponCards.ts';
 import { useArmoryStatus } from '@/hooks/useArmoryStatus';
 import { storage } from '@/services/storage';
-import { STARTER_KIT_ORDER, STARTER_KIT_WEAPONS } from '@/utils/starterKits';
+import { STARTER_KIT_ORDER, STARTER_KIT_WEAPONS, UNIVERSAL_STARTER_KIT_ID } from '@/utils/starterKits';
 import type { WeaponCardInfo } from '@/hooks/useGen1WeaponCards.ts';
 import type { WeaponType } from '@/types/gw2-api';
 import type { KitChoices, FilterMode } from './starterKitTypes';
@@ -26,7 +26,7 @@ interface Props {
 export function StarterKitsPage({ apiKey, onLogout, onNavigate }: Readonly<Props>) {
   const { t } = useTranslation();
   const { ownedCounts, isLoading: isLoadingOwned, error, refetch } = useOwnedStarterKits(apiKey);
-  const { weaponCardMap } = useGen1WeaponCards();
+  const { getWeaponCardMapForKit } = useGen1WeaponCards();
   const { unlockedItemIds, partiallyCoveredWeaponTypes, coveredWeaponTypes } = useArmoryStatus(apiKey);
 
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
@@ -225,7 +225,7 @@ export function StarterKitsPage({ apiKey, onLogout, onNavigate }: Readonly<Props
               ownedCounts={ownedCounts}
               expandedKits={expandedKits}
               choices={choices}
-              weaponCardMap={weaponCardMap}
+              getWeaponCardMapForKit={getWeaponCardMapForKit}
               unlockedItemIds={unlockedItemIds}
               partiallyCoveredWeaponTypes={partiallyCoveredWeaponTypes}
               coveredWeaponTypes={coveredWeaponTypes}
@@ -247,7 +247,7 @@ interface KitListContentProps {
   ownedCounts: Map<number, number>;
   expandedKits: Set<number>;
   choices: KitChoices;
-  weaponCardMap: Map<WeaponType, WeaponCardInfo>;
+  getWeaponCardMapForKit: (kitId: number) => Map<WeaponType, WeaponCardInfo>;
   unlockedItemIds: Set<number>;
   partiallyCoveredWeaponTypes: Set<WeaponType>;
   coveredWeaponTypes: Set<WeaponType>;
@@ -261,7 +261,7 @@ function KitListContent({
   ownedCounts,
   expandedKits,
   choices,
-  weaponCardMap,
+  getWeaponCardMapForKit,
   unlockedItemIds,
   partiallyCoveredWeaponTypes,
   coveredWeaponTypes,
@@ -278,18 +278,21 @@ function KitListContent({
   }
 
   return displayedKits.map((kitId, idx) => {
+    const isUniversal = kitId === UNIVERSAL_STARTER_KIT_ID;
     const setNum = STARTER_KIT_ORDER.indexOf(kitId) + 1;
     const count = ownedCounts.get(kitId) ?? 0;
     const isOwned = count > 0;
     const isExpanded = expandedKits.has(kitId);
     const kitChoices = normalizeChoices(choices[kitId], count);
     const availableWeapons = STARTER_KIT_WEAPONS[kitId];
+    const weaponCardMap = getWeaponCardMapForKit(kitId);
     const isLast = idx === displayedKits.length - 1;
 
     return (
       <div key={kitId} style={isLast ? {} : { borderBottom: '1px solid rgba(147,73,204,0.1)' }}>
         <KitHeaderRow
           setNum={setNum}
+          isUniversal={isUniversal}
           count={count}
           isOwned={isOwned}
           isExpanded={isExpanded}

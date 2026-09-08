@@ -134,6 +134,7 @@ export default {
     filterOwned: 'Owned ({{count}})',
     autoSaved: 'Selections saved automatically',
     kitName: 'Starter Kit · Set {{num}}',
+    kitNameUniversal: 'Starter Kit · Universal',
     slotLabel: 'SLOT {{index}} / {{total}}',
     notAssigned: 'Not yet assigned',
     choose: 'Choose',

@@ -56,7 +56,13 @@ export function SlotRow({
         </span>
       )}
 
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(96px, 1fr))',
+          gap: 8,
+        }}
+      >
         {availableWeapons.map((wt) => {
           const info = weaponCardMap.get(wt);
           return (

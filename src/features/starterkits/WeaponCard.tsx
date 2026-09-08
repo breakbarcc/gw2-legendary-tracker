@@ -34,7 +34,6 @@ export function WeaponCard({
     <div
       onClick={disabled ? undefined : onSelect}
       style={{
-        flex: '1 1 0',
         minWidth: 0,
         display: 'flex',
         flexDirection: 'column',
