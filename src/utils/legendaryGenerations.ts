@@ -59,6 +59,7 @@ const STANDALONE = new Set<number>([
   103815, // Klobjarne Geirr
   105653, // Ancora Pax
   106273, // Ancora Bellum
+  110020, // Wages of Stars
 ]);
 
 // Raid Legendary Armor (Perfected Envoy)
