@@ -62,6 +62,11 @@ const STANDALONE = new Set<number>([
   110020, // Wages of Stars
 ]);
 
+// Placeholder items that appear in the API but are not real equipment.
+export const NON_EQUIPMENT_IDS = new Set<number>([
+  95093, // "Legendary Equipment Unlocked!" — Legendary Armory migration notice
+]);
+
 // Raid Legendary Armor (Perfected Envoy)
 const ARMOR_RAIDS = new Set<number>([
   // Light
@@ -105,6 +110,7 @@ const ARMOR_WVW = new Set<number>([
 ]);
 
 export function getLegendaryGeneration(id: number, itemType: string): LegendaryGeneration {
+  if (NON_EQUIPMENT_IDS.has(id)) return 'other';
   if (itemType === 'Armor') {
     if (ARMOR_PVP.has(id)) return 'armor_pvp';
     if (ARMOR_WVW.has(id)) return 'armor_wvw';

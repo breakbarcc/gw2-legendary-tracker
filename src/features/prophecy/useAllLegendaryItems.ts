@@ -2,7 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { getApiClient } from '@/services/apiClient';
 import type { GW2Item } from '@/types/gw2-api';
-import { getLegendaryGeneration, type LegendaryGeneration } from '@/utils/legendaryGenerations';
+import {
+  getLegendaryGeneration,
+  NON_EQUIPMENT_IDS,
+  type LegendaryGeneration,
+} from '@/utils/legendaryGenerations';
 import { OTHER_TAB } from './prophecyTypes';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -81,7 +85,9 @@ export function useAllLegendaryItems(apiKey: string) {
     staleTime: 60 * 60 * 1000,
   });
 
-  const items: LegendaryPickerItem[] = (itemsQuery.data ?? []).map((raw: GW2Item) => ({
+  const items: LegendaryPickerItem[] = (itemsQuery.data ?? [])
+    .filter((raw: GW2Item) => !NON_EQUIPMENT_IDS.has(raw.id))
+    .map((raw: GW2Item) => ({
     id: raw.id,
     name: raw.name,
     icon: raw.icon,

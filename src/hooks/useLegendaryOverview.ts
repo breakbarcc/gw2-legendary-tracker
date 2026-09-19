@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { getApiClient } from '@/services/apiClient';
 import type { GW2Item, LegendaryArmoryItem } from '@/types/gw2-api';
+import { NON_EQUIPMENT_IDS } from '@/utils/legendaryGenerations';
 
 export interface LegendaryGridItem {
   id: number;
@@ -58,6 +59,7 @@ export function useLegendaryOverview(apiKey: string) {
   );
 
   const items: LegendaryGridItem[] = (itemsQuery.data ?? [])
+    .filter((item: GW2Item) => !NON_EQUIPMENT_IDS.has(item.id))
     .map((item: GW2Item) => ({
       id: item.id,
       name: item.name,
