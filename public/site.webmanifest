@@ -1,0 +1,18 @@
+{
+  "name": "Legendary Mystic Forge – GW2 Legendary Tracker",
+  "short_name": "Legendary Forge",
+  "description": "Analysiere deine Guild Wars 2 Charaktere und finde heraus, welche legendären Waffen sich als nächstes am meisten lohnen.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0814",
+  "theme_color": "#0b0814",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
